@@ -1,6 +1,3 @@
-# ElasticConsole
-ElasticConsole Nest FanOutRead Experiment 
-
 // download and extract
 https://www.elastic.co/downloads/elasticsearch
 
@@ -24,6 +21,4 @@ localhost:9200/_cat/indices?v&pretty
 PUT localhost:9200/news?pretty
 GET localhost:9200/_cat/indices?v&pretty
 
-//
-400002 total took 258ms for 100
-100000 total took 48ms for 100
+// Create an indexed Document
