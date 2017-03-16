@@ -32,14 +32,16 @@ namespace ElasticConsole
             //    id = "-1 2",
             //});
 
-            // BulkInsert(100, 500).Wait();
+           // BulkInsert(200, 1000, "1").Wait();
+
+           // BulkInsert(200, 1000, "2").Wait();
 
 
             // bulk insert
             //BulkInsert(1000, 300).Wait();
 
             //search
-            Search().Wait();
+            Search(100, 100).Wait();
 
             Console.WriteLine("press return");
 
@@ -49,7 +51,7 @@ namespace ElasticConsole
         static ElasticClient GetClient()
         {
             var settings = new ConnectionSettings(new Uri("http://localhost:9200"));
-
+            
             settings.MapDefaultTypeIndices(d => d
             .Add(typeof(NewsModel), "news")
             );
@@ -57,27 +59,27 @@ namespace ElasticConsole
             return new ElasticClient(settings);
         }
 
-        static async Task Search()
+        static async Task Search(int friendCount, int size)
         {
             var client = GetClient();
 
             List<int> friends = new List<int>();
-            friends.Add(-1);
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < friendCount; i++)
             {
                 friends.Add(i);
             }
 
             var search = new SearchDescriptor<NewsModel>();
-
+            
+           // search.Routing("1", "2");
             search.Sort(so => so.Descending(a => a.created));
-            search.Size(100);
+            search.Size(size);
             search.Query(q => q.Terms(t => t.Field(f => f.publisherId).Terms<int>(friends)));
 
             var result = client.Search<NewsModel>(search);
 
             Console.WriteLine("");
-            Console.WriteLine("hits " + result.Hits.Count + " time " + result.Took + "ms shards " + result.Shards);
+            Console.WriteLine("count " + result.Hits.Count + " took " + result.Took + "ms");
             Console.WriteLine("");
 
             foreach (var item in result.Documents)
@@ -90,7 +92,7 @@ namespace ElasticConsole
             Console.WriteLine("");
         }
 
-        static async Task BulkInsert(int publisherCount, int recordCount, int publisherStart = 0)
+        static async Task BulkInsert(int publisherCount, int recordCount, string route, int publisherStart = 0)
         {
             Console.WriteLine("BulkInsert : " + publisherCount + " x " + recordCount);
 
@@ -105,7 +107,7 @@ namespace ElasticConsole
                 for (int r = 0; r < recordCount; r++)
                 {
                     var ops = new BulkCreateDescriptor<NewsModel>();
-
+                    ops.Routing(route);
                     ops.Document(new NewsModel
                     {
                         id = Guid.NewGuid().ToString(),
